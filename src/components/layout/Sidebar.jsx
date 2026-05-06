@@ -3,6 +3,7 @@ import { supabase, isSupabaseConfigured } from '../../utils/supabase'
 
 const NAV_ITEMS = [
   { id: 'gantt',         label: 'Gantt',             icon: '📅', desc: 'Dashboard principale' },
+  { id: 'dipendenti',    label: 'Dipendenti',        icon: '👷', desc: 'Vista per risorsa' },
   { id: 'accettati',     label: 'Non Cantierizzati', icon: '📋', desc: 'Cantieri accettati' },
   { id: 'cantierizzati', label: 'Cantierizzati',     icon: '🏗️', desc: 'In lavorazione' },
   { id: 'completati',    label: 'Completati',        icon: '✅', desc: 'Storico' },

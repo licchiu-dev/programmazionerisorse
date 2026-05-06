@@ -6,6 +6,7 @@ import CantieriAccettati from './components/cantieri/CantieriAccettati'
 import CantieriCantierizzati from './components/cantieri/CantieriCantierizzati'
 import CantieriCompletati from './components/cantieri/CantieriCompletati'
 import AdminPanel from './components/admin/AdminPanel'
+import VistaDipendenti from './components/dipendenti/VistaDipendenti'
 import Login from './pages/Login'
 import { supabase, isSupabaseConfigured } from './utils/supabase'
 import { seedDemoData } from './utils/demoData'
@@ -28,6 +29,7 @@ function AppContent() {
       case 'accettati':      return <CantieriAccettati />
       case 'cantierizzati':  return <CantieriCantierizzati onNavigateGantt={() => setPage('gantt')} />
       case 'completati':     return <CantieriCompletati />
+      case 'dipendenti':     return <VistaDipendenti />
       case 'admin':          return <AdminPanel />
       default:               return <GanttChart />
     }
