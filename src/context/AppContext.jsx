@@ -363,7 +363,14 @@ export function AppProvider({ children }) {
     init()
   }, [])
 
-  const conflicts = detectConflicts(state.attivita)
+  // useMemo: ricalcola solo quando le attività cambiano, non ad ogni syncStatus/render
+  const conflicts = useMemo(() => detectConflicts(state.attivita), [state.attivita])
+
+  // Separa il valore del contesto dati da quello azioni per ridurre re-render
+  const contextValue = useMemo(
+    () => ({ state, dispatch, undo, redo, canUndo, canRedo, conflicts, syncStatus }),
+    [state, dispatch, undo, redo, canUndo, canRedo, conflicts, syncStatus]
+  )
 
   if (isLoading) {
     return (
@@ -379,7 +386,7 @@ export function AppProvider({ children }) {
   }
 
   return (
-    <AppContext.Provider value={{ state, dispatch, undo, redo, canUndo, canRedo, conflicts, syncStatus }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   )

@@ -1,5 +1,5 @@
 import { useApp } from '../../context/AppContext'
-import { isSupabaseConfigured } from '../../utils/supabase'
+import { supabase, isSupabaseConfigured } from '../../utils/supabase'
 
 const NAV_ITEMS = [
   { id: 'gantt',         label: 'Gantt',             icon: '📅', desc: 'Dashboard principale' },
@@ -101,6 +101,19 @@ export default function Sidebar({ currentPage, onNavigate }) {
           <span className={`w-2 h-2 rounded-full shrink-0 ${sync.dot}`} />
           <span className={`text-xs ${sync.labelClass}`}>{sync.label}</span>
         </div>
+
+        {/* Logout */}
+        {isSupabaseConfigured() && (
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="w-full mt-1 flex items-center gap-2 px-2 py-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-gray-800 transition-colors text-xs"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
+        )}
       </div>
     </aside>
   )

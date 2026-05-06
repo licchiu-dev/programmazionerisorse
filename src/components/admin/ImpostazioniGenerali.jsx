@@ -3,7 +3,76 @@ import { useApp } from '../../context/AppContext'
 import { exportJSON, importJSON } from '../../utils/storage'
 import { ConfirmModal } from '../common/Modal'
 import { initialState } from '../../context/AppContext'
+import { supabase, isSupabaseConfigured } from '../../utils/supabase'
 import toast from 'react-hot-toast'
+
+function SezioneCredenziali() {
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [newEmail, setNewEmail] = useState('')
+  const [loadingPwd, setLoadingPwd] = useState(false)
+  const [loadingEmail, setLoadingEmail] = useState(false)
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    if (newPassword.length < 8) { toast.error('La password deve avere almeno 8 caratteri'); return }
+    if (newPassword !== confirmPassword) { toast.error('Le password non coincidono'); return }
+    setLoadingPwd(true)
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    setLoadingPwd(false)
+    if (error) toast.error('Errore: ' + error.message)
+    else { toast.success('Password cambiata!'); setNewPassword(''); setConfirmPassword('') }
+  }
+
+  const handleChangeEmail = async (e) => {
+    e.preventDefault()
+    if (!newEmail.includes('@')) { toast.error('Email non valida'); return }
+    setLoadingEmail(true)
+    const { error } = await supabase.auth.updateUser({ email: newEmail })
+    setLoadingEmail(false)
+    if (error) toast.error('Errore: ' + error.message)
+    else toast.success('Controlla la nuova email per confermare il cambio')
+  }
+
+  const currentEmail = supabase?.auth ? '(caricamento…)' : '—'
+
+  return (
+    <div className="space-y-4">
+      {/* Cambia Password */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">🔑 Cambia Password</h3>
+        <form onSubmit={handleChangePassword} className="space-y-3">
+          <div>
+            <label className="label">Nuova password (min. 8 caratteri)</label>
+            <input type="password" className="input" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" />
+          </div>
+          <div>
+            <label className="label">Conferma nuova password</label>
+            <input type="password" className="input" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" />
+          </div>
+          <button type="submit" disabled={loadingPwd} className="btn-primary btn-sm">
+            {loadingPwd ? 'Aggiornando…' : 'Aggiorna password'}
+          </button>
+        </form>
+      </div>
+
+      {/* Cambia Email */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-1">✉️ Cambia Email di Accesso</h3>
+        <p className="text-xs text-gray-500 mb-3">Verrà inviata una email di conferma al nuovo indirizzo. Il cambio sarà effettivo solo dopo la conferma.</p>
+        <form onSubmit={handleChangeEmail} className="space-y-3">
+          <div>
+            <label className="label">Nuova email</label>
+            <input type="email" className="input" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="nuova@email.it" />
+          </div>
+          <button type="submit" disabled={loadingEmail} className="btn-primary btn-sm">
+            {loadingEmail ? 'Inviando…' : 'Cambia email'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
 
 export default function ImpostazioniGenerali() {
   const { state, dispatch } = useApp()
@@ -44,6 +113,14 @@ export default function ImpostazioniGenerali() {
   return (
     <div className="space-y-6">
       <h2 className="text-base font-semibold text-gray-800">Impostazioni Generali</h2>
+
+      {/* Credenziali accesso */}
+      {isSupabaseConfigured() && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Credenziali Accesso</h3>
+          <SezioneCredenziali />
+        </div>
+      )}
 
       {/* Dati azienda */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
