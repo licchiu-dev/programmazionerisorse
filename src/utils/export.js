@@ -1,11 +1,50 @@
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 
-export async function exportToPDF(elementId, filename = 'gantt.pdf') {
-  const el = document.getElementById(elementId)
-  if (!el) return
+// Clona il contenuto del Gantt senza sticky/overflow per una cattura pulita
+async function captureGanttCanvas(elementId, scale = 1.5) {
+  const scrollEl = document.getElementById(elementId)
+  if (!scrollEl) throw new Error('Elemento non trovato')
+
+  const inner = scrollEl.firstElementChild
+  if (!inner) throw new Error('Contenuto Gantt non trovato')
+
+  // Clona il contenuto interno (larghezza/altezza completa)
+  const clone = inner.cloneNode(true)
+  Object.assign(clone.style, {
+    position: 'fixed',
+    left: '-99999px',
+    top: '0',
+    width: inner.scrollWidth + 'px',
+    height: inner.scrollHeight + 'px',
+    overflow: 'visible',
+    zIndex: '-1',
+  })
+
+  // Rimuovi sticky da tutti gli elementi del clone
+  clone.querySelectorAll('[class*="sticky"]').forEach(el => {
+    el.style.setProperty('position', 'static', 'important')
+  })
+
+  document.body.appendChild(clone)
   try {
-    const canvas = await html2canvas(el, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' })
+    // Attendi reflow
+    await new Promise(r => requestAnimationFrame(r))
+    return await html2canvas(clone, {
+      scale,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      width: inner.scrollWidth,
+      height: inner.scrollHeight,
+    })
+  } finally {
+    document.body.removeChild(clone)
+  }
+}
+
+export async function exportToPDF(elementId, filename = 'gantt.pdf') {
+  try {
+    const canvas = await captureGanttCanvas(elementId, 1.5)
     const imgData = canvas.toDataURL('image/png')
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] })
     pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
@@ -17,10 +56,8 @@ export async function exportToPDF(elementId, filename = 'gantt.pdf') {
 }
 
 export async function exportToPNG(elementId, filename = 'gantt.png') {
-  const el = document.getElementById(elementId)
-  if (!el) return
   try {
-    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+    const canvas = await captureGanttCanvas(elementId, 2)
     const link = document.createElement('a')
     link.download = filename
     link.href = canvas.toDataURL('image/png')
@@ -90,7 +127,6 @@ export function generatePDFReport(state, tipo, id) {
     if (mieAtt.length === 0) addLine('Nessuna attività')
 
   } else {
-    // Generale
     doc.setFontSize(14)
     addLine('Report Generale', '', true)
     yPos += 4
