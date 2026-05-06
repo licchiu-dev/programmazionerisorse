@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback, useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useReducer, useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { saveToStorage, loadFromStorage } from '../utils/storage'
 import { loadFromSupabase, saveToSupabase, isSupabaseConfigured } from '../utils/supabase'
@@ -340,8 +340,9 @@ export function AppProvider({ children }) {
         setSyncStatus('syncing')
         const cloud = await loadFromSupabase()
         if (cloud && (cloud.cantieri?.length > 0 || cloud.dipendenti?.length > 0)) {
-          loadState(cloud)
-          saveToStorage(cloud)
+          const merged = { ...initialState, ...cloud, settings: { ...initialState.settings, ...(cloud.settings ?? {}) } }
+          loadState(merged)
+          saveToStorage(merged)
           setSyncStatus('saved')
           setTimeout(() => setSyncStatus('idle'), 2000)
           setIsLoading(false)
@@ -353,7 +354,8 @@ export function AppProvider({ children }) {
       // Fallback to localStorage
       const local = loadFromStorage()
       if (local) {
-        loadState(local)
+        const merged = { ...initialState, ...local, settings: { ...initialState.settings, ...(local.settings ?? {}) } }
+        loadState(merged)
         setIsLoading(false)
         return
       }

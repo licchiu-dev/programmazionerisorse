@@ -16,7 +16,7 @@ function AppContent() {
 
   // Carica dati demo solo se DB è vuoto
   useEffect(() => {
-    if (state.cantieri.length === 0 && state.dipendenti.length === 0) {
+    if ((state.cantieri?.length ?? 0) === 0 && (state.dipendenti?.length ?? 0) === 0) {
       const demo = seedDemoData()
       dispatch({ type: 'IMPORT_DATA', payload: { ...state, ...demo } })
     }
