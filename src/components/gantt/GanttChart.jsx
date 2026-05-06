@@ -484,11 +484,19 @@ export default function GanttChart() {
                 <span className="w-8 h-3 rounded inline-block" style={{ background: 'repeating-linear-gradient(45deg,#6366f1,#6366f1 4px,#ef4444 4px,#ef4444 8px)' }} />
                 Conflitto
               </span>
+              <span className="w-px h-4 bg-gray-300 inline-block" />
+              {dipendenti.map(d => (
+                <span key={d.id} className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full shrink-0 border border-white shadow-sm inline-block" style={{ background: d.colore }} />
+                  {d.nome} {d.cognome}
+                </span>
+              ))}
             </>
           ) : (
             <>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />Disponibile</span>
               <span className="flex items-center gap-1.5"><span className="w-8 h-3 rounded bg-blue-400 inline-block" />Attività (colore = cantiere)</span>
+              <span className="w-px h-4 bg-gray-300 inline-block" />
               {cantierizzati.map((c, i) => (
                 <span key={c.id} className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-full inline-block" style={{ background: CANTIERE_COLORS[i % CANTIERE_COLORS.length] }} />
