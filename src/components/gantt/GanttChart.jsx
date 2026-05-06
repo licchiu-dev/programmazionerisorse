@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
+import { useState, useRef, useCallback, useMemo, useLayoutEffect } from 'react'
 import { useApp } from '../../context/AppContext'
-import { getDaysArray, dayWidth, GIORNI_SHORT, MESI_IT } from '../../utils/dateUtils'
+import { getDaysArray, GIORNI_SHORT, MESI_IT } from '../../utils/dateUtils'
 import { attivitaHasConflict } from '../../utils/conflicts'
 import { parseISO, differenceInDays, isWeekend } from 'date-fns'
 import ActivityModal from './ActivityModal'
@@ -12,6 +12,10 @@ const LANE_PAD = 8       // padding verticale totale per riga
 const MIN_ROW_H = 38     // altezza minima riga (0 attività)
 const HEADER_H = 56      // altezza header date
 const LEFT_W = 220       // larghezza colonna sinistra
+
+const ZOOM_LEVELS = [6, 10, 16, 24, 36, 52]   // px per giorno
+const ZOOM_LABELS = ['Anno', 'Semestre', 'Trimestre', 'Bimestre', 'Mese', 'Dettaglio']
+const DEFAULT_ZOOM = 3  // 24 px/g
 
 // ─── Lane assignment ─────────────────────────────────────────────────────────
 // Assegna ogni attività a una "corsia" verticale per evitare sovrapposizioni
@@ -53,6 +57,10 @@ export default function GanttChart() {
 
   // Drag state: usiamo ref + rAF per non triggerare re-render ad ogni pixel
   const scrollRef = useRef(null)
+  const [zoomIdx, setZoomIdx] = useState(DEFAULT_ZOOM)
+  const dayWidth = ZOOM_LEVELS[zoomIdx]
+  const showDayNum  = dayWidth >= 14
+  const showDayName = dayWidth >= 24
 
   const dragStateRef = useRef(null)
   const [dragVisual, setDragVisual] = useState(null)   // aggiornato via rAF
@@ -122,12 +130,14 @@ export default function GanttChart() {
 
   const todayIdx = dayIndex(new Date().toISOString().split('T')[0])
 
-  // Scroll to today on first render (3 days of left margin)
-  useEffect(() => {
-    if (scrollRef.current && todayIdx > 0) {
+  const scrollToToday = useCallback(() => {
+    if (scrollRef.current && todayIdx >= 0) {
       scrollRef.current.scrollLeft = Math.max(0, todayIdx * dayWidth - dayWidth * 3)
     }
-  }, [todayIdx])
+  }, [todayIdx, dayWidth])
+
+  // Scroll to today whenever data loads or zoom changes
+  useLayoutEffect(() => { scrollToToday() }, [scrollToToday])
 
   // ── Drag activity (move) ──────────────────────────────────────────────────
   const handleActivityMouseDown = useCallback((e, att) => {
@@ -267,6 +277,25 @@ export default function GanttChart() {
           <option value="all">Tutte le risorse</option>
           {dipendenti.map(d => <option key={d.id} value={d.id}>{d.nome} {d.cognome}</option>)}
         </select>
+
+        {/* Zoom controls */}
+        <div className="flex items-center gap-1 border border-gray-200 rounded-lg px-1 py-0.5">
+          <button
+            onClick={() => setZoomIdx(i => Math.max(i - 1, 0))}
+            disabled={zoomIdx === 0}
+            className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 disabled:opacity-30 text-sm font-bold"
+            title="Zoom out"
+          >−</button>
+          <span className="text-xs text-gray-500 w-16 text-center select-none">{ZOOM_LABELS[zoomIdx]}</span>
+          <button
+            onClick={() => setZoomIdx(i => Math.min(i + 1, ZOOM_LEVELS.length - 1))}
+            disabled={zoomIdx === ZOOM_LEVELS.length - 1}
+            className="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 disabled:opacity-30 text-sm font-bold"
+            title="Zoom in"
+          >+</button>
+        </div>
+        <button onClick={scrollToToday} className="btn-secondary btn-sm">⊙ Oggi</button>
+
         <button onClick={() => setModal({ open: true, attivita: null, cantiereId: null, dataInizio: null, dataFine: null })} className="btn-primary btn-sm ml-auto">
           + Attività
         </button>
@@ -307,9 +336,9 @@ export default function GanttChart() {
                   const isWE = isWeekend(d)
                   const isToday = i === todayIdx
                   return (
-                    <div key={i} className={`flex flex-col items-center justify-center border-r text-center shrink-0 ${isToday ? 'bg-primary-100 text-primary-700 font-bold' : isWE ? 'bg-gray-50 text-gray-300' : 'text-gray-500'}`} style={{ width: dayWidth }}>
-                      <span className="text-[9px] leading-none">{GIORNI_SHORT[d.getDay()]}</span>
-                      <span className="text-[10px] font-medium">{d.getDate()}</span>
+                    <div key={i} className={`flex flex-col items-center justify-center border-r text-center shrink-0 overflow-hidden ${isToday ? 'bg-primary-100 text-primary-700 font-bold' : isWE ? 'bg-gray-50 text-gray-300' : 'text-gray-500'}`} style={{ width: dayWidth }}>
+                      {showDayName && <span className="text-[9px] leading-none">{GIORNI_SHORT[d.getDay()]}</span>}
+                      {showDayNum  && <span className="text-[10px] font-medium">{d.getDate()}</span>}
                     </div>
                   )
                 })}
