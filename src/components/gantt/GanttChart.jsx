@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { getDaysArray, dayWidth, GIORNI_SHORT, MESI_IT } from '../../utils/dateUtils'
 import { attivitaHasConflict } from '../../utils/conflicts'
@@ -52,6 +52,8 @@ export default function GanttChart() {
   const [filterDipendente, setFilterDipendente] = useState('all')
 
   // Drag state: usiamo ref + rAF per non triggerare re-render ad ogni pixel
+  const scrollRef = useRef(null)
+
   const dragStateRef = useRef(null)
   const [dragVisual, setDragVisual] = useState(null)   // aggiornato via rAF
   const rafRef = useRef(null)
@@ -119,6 +121,13 @@ export default function GanttChart() {
   }, [days])
 
   const todayIdx = dayIndex(new Date().toISOString().split('T')[0])
+
+  // Scroll to today on first render (3 days of left margin)
+  useEffect(() => {
+    if (scrollRef.current && todayIdx > 0) {
+      scrollRef.current.scrollLeft = Math.max(0, todayIdx * dayWidth - dayWidth * 3)
+    }
+  }, [todayIdx])
 
   // ── Drag activity (move) ──────────────────────────────────────────────────
   const handleActivityMouseDown = useCallback((e, att) => {
@@ -273,7 +282,7 @@ export default function GanttChart() {
       )}
 
       {/* Gantt container: unico scroll, sticky left column */}
-      <div id="gantt-printable" className="flex-1 overflow-auto mx-5 my-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+      <div id="gantt-printable" ref={scrollRef} className="flex-1 overflow-auto mx-5 my-3 bg-white rounded-xl border border-gray-200 shadow-sm">
         <div style={{ width: LEFT_W + totalGridWidth, minWidth: '100%' }}>
 
           {/* ── Header (sticky top) ── */}
