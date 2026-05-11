@@ -519,7 +519,7 @@ export default function GanttChart() {
         dataFine={modal.dataFine}
         dipendentiIds={modal.dipendentiIds}
       />
-      <ExportPanel isOpen={showExport} onClose={() => setShowExport(false)} />
+      <ExportPanel isOpen={showExport} onClose={() => setShowExport(false)} viewMode={viewMode} filterCantiere={filterCantiere} filterDipendente={filterDipendente} />
     </div>
   )
 }
