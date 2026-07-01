@@ -474,40 +474,40 @@ export default function GanttChart() {
             )
           })}
         </div>
+      </div>
 
-        {/* Legend */}
-        <div className="sticky bottom-0 border-t border-gray-100 px-5 py-2 flex items-center gap-6 flex-wrap bg-gray-50/95 backdrop-blur-sm text-xs text-gray-500">
-          {viewMode === 'cantiere' ? (
-            <>
-              <span className="flex items-center gap-1.5"><span className="w-8 h-3 rounded bg-primary-400 inline-block" />Attività (colore = risorsa)</span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-8 h-3 rounded inline-block" style={{ background: 'repeating-linear-gradient(45deg,#6366f1,#6366f1 4px,#ef4444 4px,#ef4444 8px)' }} />
-                Conflitto
+      {/* Legend — fuori dall'area scrollabile, sempre visibile */}
+      <div className="shrink-0 border-t border-gray-200 mx-5 mb-3 px-4 py-2 flex items-center gap-6 flex-wrap bg-gray-50 rounded-b-xl text-xs text-gray-500">
+        {viewMode === 'cantiere' ? (
+          <>
+            <span className="flex items-center gap-1.5"><span className="w-8 h-3 rounded bg-primary-400 inline-block" />Attività (colore = risorsa)</span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-8 h-3 rounded inline-block" style={{ background: 'repeating-linear-gradient(45deg,#6366f1,#6366f1 4px,#ef4444 4px,#ef4444 8px)' }} />
+              Conflitto
+            </span>
+            <span className="w-px h-4 bg-gray-300 inline-block" />
+            {dipendenti.map(d => (
+              <span key={d.id} className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-full shrink-0 border border-white shadow-sm inline-block" style={{ background: d.colore }} />
+                {d.nome} {d.cognome}
               </span>
-              <span className="w-px h-4 bg-gray-300 inline-block" />
-              {dipendenti.map(d => (
-                <span key={d.id} className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full shrink-0 border border-white shadow-sm inline-block" style={{ background: d.colore }} />
-                  {d.nome} {d.cognome}
-                </span>
-              ))}
-            </>
-          ) : (
-            <>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />Disponibile</span>
-              <span className="flex items-center gap-1.5"><span className="w-8 h-3 rounded bg-blue-400 inline-block" />Attività (colore = cantiere)</span>
-              <span className="w-px h-4 bg-gray-300 inline-block" />
-              {cantierizzati.map((c, i) => (
-                <span key={c.id} className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full inline-block" style={{ background: CANTIERE_COLORS[i % CANTIERE_COLORS.length] }} />
-                  {c.nome}
-                </span>
-              ))}
-            </>
-          )}
-          <span className="flex items-center gap-1.5"><span className="w-px h-4 bg-primary-400 inline-block" />Oggi</span>
-          <span className="ml-auto text-gray-400 hidden lg:block">Trascina per creare · Trascina barra per spostare · Bordo destro per ridimensionare</span>
-        </div>
+            ))}
+          </>
+        ) : (
+          <>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />Disponibile</span>
+            <span className="flex items-center gap-1.5"><span className="w-8 h-3 rounded bg-blue-400 inline-block" />Attività (colore = cantiere)</span>
+            <span className="w-px h-4 bg-gray-300 inline-block" />
+            {cantierizzati.map((c, i) => (
+              <span key={c.id} className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-full inline-block" style={{ background: CANTIERE_COLORS[i % CANTIERE_COLORS.length] }} />
+                {c.nome}
+              </span>
+            ))}
+          </>
+        )}
+        <span className="flex items-center gap-1.5"><span className="w-px h-4 bg-primary-400 inline-block" />Oggi</span>
+        <span className="ml-auto text-gray-400 hidden lg:block">Trascina per creare · Trascina barra per spostare · Bordo destro per ridimensionare</span>
       </div>
 
       <ActivityModal
